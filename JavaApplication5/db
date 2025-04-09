@@ -1,0 +1,118 @@
+drop DATABASE hrm;
+
+CREATE DATABASE hrm;
+use hrm;
+CREATE TABLE users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    date_of_birth DATE,
+    gender ENUM('Nam', 'Nữ', 'Khác'),
+    phone_number VARCHAR(20),
+    address TEXT,
+    hire_date DATE NOT NULL,
+    status ENUM('ACTIVE', 'INACTIVE', 'ON_LEAVE') NOT NULL DEFAULT 'ACTIVE',
+	access_permissions BOOLEAN,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE Job_Catalog (
+    Job_ID VARCHAR(50) PRIMARY KEY NOT NULL,
+    Job_name VARCHAR(100),
+    Job_category VARCHAR(100),
+    Wage DECIMAL(10, 2),
+    Worker_count INT,
+    Status_job BOOLEAN,
+    Location VARCHAR(255),
+    Start_time DATE,
+    End_time DATE
+);
+
+-- Bảng trung gian giữa Người lao động và Danh mục công việc
+CREATE TABLE Worker_Job (
+    user_id INT,
+    Job_ID VARCHAR(50),
+	first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+	Start_date DATE,
+    End_date DATE,
+    Status_job BOOLEAN,
+    PRIMARY KEY (user_id, Job_ID),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (Job_ID) REFERENCES Job_Catalog(Job_ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- Bảng chấm công
+CREATE TABLE attendance (
+    attendance_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    check_in DATETIME NOT NULL,
+    check_out DATETIME,
+    status ENUM('PRESENT', 'ABSENT', 'LATE', 'HALF_DAY') NOT NULL,
+    note TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- Bảng lương
+CREATE TABLE salary_payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    payment_date DATE NOT NULL,
+    amount DECIMAL(15, 2) NOT NULL,
+    bonus DECIMAL(15, 2) DEFAULT 0,
+    deduction DECIMAL(15, 2) DEFAULT 0,
+    tax DECIMAL(15, 2) DEFAULT 0,
+    net_amount DECIMAL(15, 2) NOT NULL,
+    payment_method ENUM('BANK_TRANSFER', 'CASH', 'CHECK') NOT NULL,
+    status ENUM('PENDING', 'COMPLETED', 'FAILED') NOT NULL,
+    note TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- Bảng nghỉ phép
+CREATE TABLE leaves (
+    leave_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    leave_type ENUM('ANNUAL', 'SICK', 'MATERNITY', 'PATERNITY', 'OTHER') NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reason TEXT,
+    status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    approved_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (approved_by) REFERENCES users(user_id)
+);
+
+-- Bảng thông báo
+CREATE TABLE notifications (
+    notification_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+
+INSERT INTO users (
+    email, first_name, last_name, date_of_birth, gender, phone_number, address, hire_date, status, access_permissions
+) VALUES
+('nguyenvana@example.com', 'Văn A', 'Nguyễn', '1990-05-10', 'Nam', '0912345678', '123 Đường Lê Lợi, Hà Nội', '2022-01-15', 'ACTIVE', TRUE),
+('tranthib@example.com', 'Thị B', 'Trần', '1988-08-22', 'Nữ', '0909123456', '456 Đường Trần Phú, Đà Nẵng', '2021-11-01', 'ON_LEAVE', FALSE),
+('lehongc@example.com', 'Hồng C', 'Lê', '1995-03-18', 'Nữ', '0988777666', '789 Đường Nguyễn Huệ, TP.HCM', '2023-06-10', 'ACTIVE', TRUE),
+('phamvand@example.com', 'Văn D', 'Phạm', '1992-12-05', 'Nam', '0977666555', '101 Đường Bạch Mai, Hà Nội', '2020-09-20', 'INACTIVE', FALSE),
+('doanthie@example.com', 'Thi E', 'Đoàn', '2000-01-01', 'Khác', '0966555444', '202 Đường Trần Hưng Đạo, Cần Thơ', '2024-03-01', 'ACTIVE', TRUE);
+
+
+
+
